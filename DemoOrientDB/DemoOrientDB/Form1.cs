@@ -39,6 +39,7 @@ namespace DemoOrientDB
             ODatabase database = new ODatabase(_hostname, _port, _DBname, ODatabaseType.Graph, _user, _passwd);
             return database;
         }
+
         private void LoadData()
         {
             List<ODocument> resultNV = opentDatabase().Query("SELECT * FROM NhanVien");
@@ -58,6 +59,16 @@ namespace DemoOrientDB
                 dataGridView1.Rows.Add(row);
             }
         }
+
+        private void LoadDataToControl(int index)
+        {
+            txtID.Text = dataGridView1.Rows[index].Cells[4].Value.ToString();
+            txtHoTen.Text = dataGridView1.Rows[index].Cells[0].Value.ToString();
+            txtDiaChi.Text = dataGridView1.Rows[index].Cells[1].Value.ToString();
+            dtpNgaySinh.Value = DateTime.Parse(dataGridView1.Rows[index].Cells[2].Value.ToString());
+            cbbGioiTinh.Text= dataGridView1.Rows[index].Cells[3].Value.ToString();
+        }
+
         private void Form1_Load(object sender, EventArgs e)
         {
  //           Connect();
@@ -74,6 +85,11 @@ namespace DemoOrientDB
             cbbPhongBan.SelectedIndex = 0;
         }
 
+        /// <summary>
+        /// Thêm đối tượng
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void btnThem_Click(object sender, EventArgs e)
         {
             ODatabase database = opentDatabase();
@@ -81,6 +97,7 @@ namespace DemoOrientDB
             database.Command("INSERT INTO NhanVien(HoTenNV,DiaChi,NgaySinh,GioiTinh,ID) VALUES ('"+nv.hoTen + "','"+nv.diaChi + "','"+nv.ngaySinh + "','"+nv.gioiTinh + "','"+txtID.Text+ "')");
             LoadData();
         }
+
         /// <summary>
         /// Xóa đối tượng
         /// </summary>
@@ -88,21 +105,75 @@ namespace DemoOrientDB
         /// <param name="e"></param>
         private void btnXoa_Click(object sender, EventArgs e)
         {
+            dataGridView1.Rows.Clear();
             ODatabase database = opentDatabase();
-            NhanVien nv = new NhanVien(txtHoTen.Text, dtpNgaySinh.Value, txtDiaChi.Text, cbbGioiTinh.Text, int.Parse(txtID.Text));
-            database.Command("DELETE EDGE FROM NhanVien WHERE ID=");
+            //NhanVien nv = new NhanVien(txtHoTen.Text, dtpNgaySinh.Value, txtDiaChi.Text, cbbGioiTinh.Text, int.Parse(txtID.Text));
+            database.Command("DELETE VERTEX NhanVien WHERE ID=" + int.Parse(txtID.Text));
             LoadData();
         }
-        /// <summary>
+
+        /// <summary>   
         /// upload cell
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void btnSua_Click(object sender, EventArgs e)
         {
+            dataGridView1.Rows.Clear();
             ODatabase database = opentDatabase();
             NhanVien nv = new NhanVien(txtHoTen.Text, dtpNgaySinh.Value, txtDiaChi.Text, cbbGioiTinh.Text, int.Parse(txtID.Text));
             database.Command("UPDATE NhanVien SET HoTenNV='" + nv.hoTen + "', DiaChi='" + nv.diaChi + "', NgaySinh='" + nv.ngaySinh + "', GioiTinh='" + nv.gioiTinh + "' WHERE ID=" + int.Parse(txtID.Text));
+            LoadData();
+        }
+
+        /// <summary>
+        /// select
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnTimKien_Click(object sender, EventArgs e)
+        {
+            ODatabase database = opentDatabase();
+            dataGridView1.Rows.Clear();
+            List<ODocument> resultNV = opentDatabase().Query("SELECT FROM NhanVien WHERE HoTenNV LIKE '%" + txtHoTen.Text + "%'");
+            foreach (ODocument document in resultNV)
+            {
+                string s1 = document.GetField<string>("HoTenNV");
+                string s2 = document.GetField<string>("DiaChi");
+                DateTime s3 = document.GetField<DateTime>("NgaySinh");
+                string s4 = document.GetField<string>("GioiTinh");
+                int s5 = document.GetField<int>("ID");
+                DataGridViewRow row = (DataGridViewRow)dataGridView1.Rows[0].Clone();
+                row.Cells[0].Value = s1;
+                row.Cells[1].Value = s2;
+                row.Cells[2].Value = s3;
+                row.Cells[3].Value = s4;
+                row.Cells[4].Value = s5;
+                dataGridView1.Rows.Add(row);
+            }
+        }
+
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+
+        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            int index = e.RowIndex;
+            if (index >= 0)
+            {
+                LoadDataToControl(index);
+            }
+        }
+
+        /// <summary>
+        /// Load lại data
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnReLoad_Click(object sender, EventArgs e)
+        {
             LoadData();
         }
     }
